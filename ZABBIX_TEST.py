@@ -40,25 +40,29 @@ class API:
         self.api = None
         # Выполняем подключение ПРИ СОЗДАНИИ объекта
         self._connect()
-        print(f"Успешное подключение к Zabbix API: {self.url}")
+        print(f"Успешное подключение к Zabbix API: {self.url} \n")
 
     def _connect(self):
         try:
-            print(f"Попытка подключения к {self.url}")
+            print(f"Попытка подключения к {self.url} \n")
             self.api = ZabbixAPI(url=self.url, timeout=5)
 
             if self.token:
                 self.api.login(token=self.token)
             else:
                 self.api.login(user=self.user, password=self.password)
-
-            # Небольшая проверка, что API живой 
-            version = self.api.apiinfo.version()
-            print(f"Версия Zabbix API: {version}")
-
+                
+            # Небольшая проверка, что API живой (запросим хосты)
+            try_hosts = self.api.host.get(limit=1)
+            if try_hosts:
+                print("API доступен", "\n")
+            else:
+                print(f"Ошибка: Не удалось получить данные хостов. \n")
+                raise ConnectionError(f"Не удалось получить данные хостов. \n") 
+            
         except Exception as e:
             self.api = None
-            error_message = f"Ошибка подклюствия/аутентификации к Zabbix {self.url}"
+            error_message = f"Ошибка подключения к Zabbix {self.url} \n"
             print(error_message)
             raise ConnectionError(e) from None
 
@@ -391,3 +395,61 @@ class API:
                         }
 
         return result
+    
+ # -------------------------------------------------------------------------------------------
+   
+    def get_hostgroup_list_v64(self):
+        array = []
+        hash = {}
+        try:
+           res = self.api.hostgroup.get()
+        except Exception as e:
+            print("Ошибка при получении хостов")
+            return {}
+        if isinstance(res, list) and len(res)>0: #Проверяем, что res = список и числовое значение > 0
+            for group in res:
+                if isinstance(group, dict) and "name" in group and "groupid" in group:
+                    hash[group["groupid"]] = {"name": group["name"]} 
+                    array.append(group["groupid"])
+        return {"hash": hash, "array": array}
+   
+    # dict = {}
+    # group = {"groupid": 123, "name": "Servers"}
+    # hash = {
+    #    123: {"name": "Servers"},
+    #    456: {"name": "Workstations"},
+    # }
+# -------------------------------------------------------------------------------------------
+
+    def get_hostgroup_hosts_v64(self, groups):
+         groupids = []
+         groupids = groups.split()
+         
+         hash = {}
+         
+         try:
+            res = self.api.hostgroup.get(
+              groupids=groupids
+              selectHosts="extend"
+         )
+         except Exception as e:
+            print(f"Ошибка при запросе хост-групп: {e}")
+            return hash
+        
+         if isinstance(res, list) and len(res)>0:
+             for groups in res:
+                 if (isinstance (groups, dict) and len(groups)>0 and 'hosts' in groups and isinstance(groups['hosts'], list) and 'groupid' in groups and groups['groupid']):
+                     groupid = groups['groupid']
+                     for hosts in groups['hosts']:
+                         if isinstance(hosts, dict) and 'name' in hosts and 'host' in hosts and 'hostid' in hosts and 'status' in hosts:
+                             
+                             hostid = hosts['hostid']
+                             hash['all']['hostid'] = {
+                                 'host': hosts['host'],
+                                 'name': hosts['name'],
+                                 'status': hosts['status'],
+                                 'flags': hosts['flags'],
+                                 'proxy': hosts['proxy']
+                             }
+                             
+
