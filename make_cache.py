@@ -1,4 +1,4 @@
-from ZABBIX_TEST import API
+from zabbix_api import API
 from pathlib import Path
 import os
 import json
