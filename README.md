@@ -12,7 +12,7 @@ _____________________
 
 ## Пример использования библиотеки:
 
-from zabbix_api import API
+####from zabbix_api import API
 
 ### Инициализация подключения и создание объекта класса API:
 api = API(creds_file="creds.ini")
@@ -29,9 +29,9 @@ print(template, "\n")
 
 
 ## Пример формирования кэша в json:
-from zabbix_api import API
+####from zabbix_api import API
 
-from make_cache import ZabbixCache
+####from make_cache import ZabbixCache
 
 
 
