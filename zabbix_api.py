@@ -399,57 +399,79 @@ class API:
  # -------------------------------------------------------------------------------------------
    
     def get_hostgroup_list_v64(self):
+        
         array = []
-        hash = {}
+        result = {}
+        
         try:
            res = self.api.hostgroup.get()
         except Exception as e:
             print("Ошибка при получении хостов")
             return {}
+        
         if isinstance(res, list) and len(res)>0: #Проверяем, что res = список и числовое значение > 0
             for group in res:
                 if isinstance(group, dict) and "name" in group and "groupid" in group:
-                    hash[group["groupid"]] = {"name": group["name"]} 
+                    result[group["groupid"]] = {"name": group["name"]} 
                     array.append(group["groupid"])
-        return {"hash": hash, "array": array}
+                    
+        return {"hash": result, "array": array}
    
     # dict = {}
-    # group = {"groupid": 123, "name": "Servers"}
-    # hash = {
-    #    123: {"name": "Servers"},
-    #    456: {"name": "Workstations"},
+    #     group = {"groupid": 123, "name": "Servers"}
+    #         result = {
+    #             123: {"name": "Servers"},
+    #             456: {"name": "Workstations"},
     # }
 # -------------------------------------------------------------------------------------------
 
     def get_hostgroup_hosts_v64(self, groups):
-         groupids = []
-         groupids = groups.split()
          
-         hash = {}
+         if not groups:
+            raise ValueError("Нужно указать groups")
+         
+         result = {
+             'all': {},
+             'hostgroup':{}
+            }
          
          try:
             res = self.api.hostgroup.get(
-              groupids=groupids
+              groupids=groups,
               selectHosts="extend"
-         )
+              )
+              
          except Exception as e:
             print(f"Ошибка при запросе хост-групп: {e}")
-            return hash
+            return result
         
-         if isinstance(res, list) and len(res)>0:
-             for groups in res:
-                 if (isinstance (groups, dict) and len(groups)>0 and 'hosts' in groups and isinstance(groups['hosts'], list) and 'groupid' in groups and groups['groupid']):
-                     groupid = groups['groupid']
-                     for hosts in groups['hosts']:
-                         if isinstance(hosts, dict) and 'name' in hosts and 'host' in hosts and 'hostid' in hosts and 'status' in hosts:
+         if isinstance(res, list) and res:
+             for group in res:
+                 if isinstance (group, dict) and 'hosts' in group and isinstance(group['hosts'], list) and 'groupid' in group:
+                     
+                     groupid = group['groupid']
+                     
+                     for host in group['hosts']:
+                         if isinstance(host, dict) and all(key in host for key in ['name', 'host', 'hostid', 'status']):
                              
-                             hostid = hosts['hostid']
-                             hash['all']['hostid'] = {
-                                 'host': hosts['host'],
-                                 'name': hosts['name'],
-                                 'status': hosts['status'],
-                                 'flags': hosts['flags'],
-                                 'proxy': hosts['proxy']
-                             }
+                          hostid = host['hostid']
+                     
+                          result['all'][hostid] = {
+                                'host': host['host'],
+                                'name': host['name'],
+                                'status': host['status'],
+                                'flags': host.get('flags', '0'),
+                                'proxy': host.get('proxy_hostid', '0'),
+                     }
+                     
+                          if groupid not in result['hostgroup']:
+                             result['hostgroup'][groupid] = {'host': {}}
+                         
+                          result['hostgroup'][groupid]['host'][hostid] = {
+                              'host': host['host']
+                    }
+                             
+         return result 
                              
 
+    
