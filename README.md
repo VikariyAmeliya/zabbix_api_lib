@@ -30,8 +30,9 @@ print(template, "\n")
 
 ## Пример формирования кэша в json:
 from zabbix_api import API
+
 from make_cache import ZabbixCache
-import os
+
 
 
 api = API(creds_file="creds.ini")
