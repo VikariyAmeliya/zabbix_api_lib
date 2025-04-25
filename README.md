@@ -17,7 +17,7 @@ from zabbix_api import API
 ### Инициализация подключения
 api = API(creds_file="creds.ini")
 
-### Получение проблем конкретного host:
+### Получение проблем конкретного host по его id:
 problems = api.get_problem(hosts=10084)
 
 print(problems, "\n") 
