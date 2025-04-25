@@ -40,4 +40,5 @@ cache = ZabbixCache(api, cache_dir="/Users/whoami?/Documents/_zabbix/cache_struc
 
 
 make_cache = cache.make_cache()
+
 print(make_cache)
