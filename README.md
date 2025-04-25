@@ -10,7 +10,7 @@
 
 _____________________
 
-## Пример использования:
+## Пример использования библиотеки:
 
 from zabbix_api import API
 
@@ -26,3 +26,18 @@ print(problems, "\n")
 template = api.get_template_id_by_name("Linux by Zabbix agent")
 
 print(template, "\n")
+
+
+## Пример формирования кэша в json:
+from zabbix_api import API
+from make_cache import ZabbixCache
+import os
+
+
+api = API(creds_file="creds.ini")
+
+cache = ZabbixCache(api, cache_dir="/Users/whoami?/Documents/_zabbix/cache_structure", pid_dir="/Users/whoami?/Documents/_zabbix/pid")
+
+
+make_cache = cache.make_cache()
+print(make_cache)
