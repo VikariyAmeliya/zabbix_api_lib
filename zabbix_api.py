@@ -472,6 +472,37 @@ class API:
                     }
                              
          return result 
-                             
+     
+     
+# -------------------------------------------------------------------------------------------
 
-    
+     
+    def get_events(self, time_from=None, time_till=None, min_severity=1, value=1, eventids=None):
+        if not self.api:
+            print("Ошибка: API не инициализирован")
+            return []
+        
+        try:
+            events = self.api.event.get(
+                selectHosts="extend",
+                selectTags="extend",
+                selectAcknowledges="extend",
+                time_from=time_from,
+                time_till=time_till,
+                min_severity=min_severity,
+                value=value,
+                eventids=eventids
+            )
+            return events if isinstance(events, list) else []
+        except Exception as e:
+            print(f"Ошибка при получении событий: {e}")
+            return []
+# -------------------------------------------------------------------------------------------
+
+        
+        
+            
+                
+                
+            
+                
